@@ -140,7 +140,7 @@ export default {
         edit: false,
         scadenzaCalcolata: moment(),
       },
-      scadenze: ["1 settimana", "1 mese", "2 mesi", "3 mesi"],
+      scadenze: ["1 sett", "1 mese", "2 mesi", "3 mesi"],
     },
     elements: [],
   }),
