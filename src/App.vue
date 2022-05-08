@@ -41,30 +41,51 @@
                 v-model="addDialog.item.quantity"
               />
 
+              <v-text-field
+                class="text-h5 grey lighten-1"
+                label="giorni per scadenza"
+                type="number"
+                :rules="addDialog.scadenzaRules"
+                v-model="addDialog.item.scadenzaGiorno"
+              />
+
               <v-select
                 @change="updateScadenza"
                 :items="addDialog.scadenze"
-                v-model="addDialog.item.scadenza"
-                label="Scadenza"
+                v-model="addDialog.item.scadenzaTemporale"
+                label="tempo per scadenza"
               ></v-select>
             </v-form>
-            {{ addDialog.item.scadenzaCalcolata.format("DD/MM/YYYY") }}
+
+            today is:
+            {{ addDialog.item.scadenzaCalcolata }}
           </v-card-text>
 
           <v-divider></v-divider>
 
           <v-card-actions>
             <v-spacer></v-spacer>
-            <v-btn
-              color="primary"
-              @click="saveElement"
-              v-if="addDialog.item.edit"
-            >
-              Save
-            </v-btn>
-            <v-btn color="primary" @click="saveElement" v-else> Add </v-btn>
 
-            <v-btn color="primary" @click="closeAddDialog"> Close </v-btn>
+            <v-row align="center" justify="space-around">
+              <v-btn
+                color="success"
+                @click="saveElement"
+                v-if="addDialog.item.edit"
+              >
+                <v-icon left> mdi-content-save-edit </v-icon>
+                Save
+              </v-btn>
+
+              <v-btn color="success" @click="saveElement" v-else>
+                <v-icon left> mdi-plus-circle </v-icon>
+                Add
+              </v-btn>
+
+              <v-btn color="error" @click="closeAddDialog">
+                <v-icon left> mdi-close-circle </v-icon>
+                Close
+              </v-btn>
+            </v-row>
           </v-card-actions>
         </v-card>
       </v-dialog>
@@ -86,16 +107,22 @@
               class="ml-5"
               v-text="item.quantity"
             ></v-list-item-title>
-            <v-chip class="ms-auto">
-              {{ item.scadenza }}
+            <v-chip label class="ms-auto" color="orange">
+              {{ item.scadenzaGiorno }}
+              {{ item.scadenzaTemporale }}
             </v-chip>
-            <!--<v-list-item-title v-text="item.barcode"></v-list-item-title>-->
 
-            <v-btn icon @click="deleteElement(i)" class="mx-1">
+            <v-btn
+              color="error"
+              dark
+              icon
+              @click="deleteElement(i)"
+              class="mx-3"
+            >
               <span class="mdi mdi-delete"></span>
             </v-btn>
-            <v-btn icon @click="editElement(i)">
-              <span class="mdi mdi-pencil"></span>
+            <v-btn fab dark large color="cyan" icon @click="editElement(i)">
+              <span class="mdi mdi-pencil-outline"></span>
             </v-btn>
           </v-list-item>
         </v-list>
@@ -132,15 +159,21 @@ export default {
         (value) => !!value || "Inserisci quantità.",
         (value) => (value && value >= 0) || "Inserisci valore valido",
       ],
+      scadenzaRules: [
+        (value) => !!value || "Inserisci quantità.",
+        (value) =>
+          (value && value > 0 && value <= 12) || "Inserisci valore valido",
+      ],
       item: {
         name: "",
         quantity: 0,
-        scadenza: "",
+        scadenzaGiorno: "",
+        scadenzaTemporale: "",
         //barcode: "",
         edit: false,
         scadenzaCalcolata: moment(),
       },
-      scadenze: ["1 sett", "1 mese", "2 mesi", "3 mesi"],
+      scadenze: ["set", "mes", "ann"],
     },
     elements: [],
   }),
@@ -160,8 +193,9 @@ export default {
       this.addDialog.item = {
         name: "",
         quantity: "",
-        scadenza: "",
-        scadenzaCalcolata: moment(),
+        scadenzaGiorno: "",
+        scadenzaTemporale: "",
+        scadenzaCalcolata: moment() .format("DD/MM/YYYY"),
         edit: false,
       };
     },
@@ -184,7 +218,6 @@ export default {
       this.html5QrcodeScanner.stop();
     },
 
-
     updateScadenza(e) {
       console.log(e);
 
@@ -192,6 +225,15 @@ export default {
     },
 
     saveElement() {
+      if (
+        this.addDialog.item.name === "" ||
+        this.addDialog.item.quantity === "" ||
+        this.addDialog.item.scadenzaGiorno === "" ||
+        this.addDialog.item.scadenzaTemporale === ""
+      ) {
+        return;
+      }
+
       if (this.addDialog.item.edit !== true) {
         this.elements.push(this.addDialog.item);
       }
@@ -205,6 +247,7 @@ export default {
     },
 
     editElement(index) {
+      // this.addDialog.item.scadenzaCalcolata = this.addDialog.item.scadenzaCalcolata.format("DD/MM/YYYY");
       this.showAddDialog();
       this.addDialog.item = this.elements[index];
       this.addDialog.item.edit = true;
