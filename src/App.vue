@@ -303,4 +303,19 @@ export default {
   width: 100%;
   max-width: 360px;
 }
+
+.v-card-title {
+  align-items: center;
+  display: flex;
+  flex: none;
+  font-size: 1.25rem;
+  font-weight: 250;
+  hyphens: auto;
+  letter-spacing: 0.0125em;
+  overflow-wrap: normal;
+  padding: 0.5rem 1rem;
+  text-transform: none;
+  word-break: normal;
+  word-wrap: break-word;
+}
 </style>
