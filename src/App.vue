@@ -165,7 +165,8 @@ export default {
 
   data: () => ({
     html5QrcodeScanner: null,
-    searchButton: false,
+    searchButton: false,  //per barra ricerca
+    searchSome: "", //string ctrl f
 
     // headers: [
     //       {
