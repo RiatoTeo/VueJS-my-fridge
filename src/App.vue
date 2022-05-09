@@ -94,20 +94,16 @@
         <v-card>
           <v-card-title>
             <v-text-field
-              v-model="search"
+              v-model="searchSome"
               class="my-3"
               append-icon="mdi-magnify"
               label="Search"
               single-line
               hide-details
               v-if="this.searchButton"
-            ></v-text-field>
+            >
+            </v-text-field>
           </v-card-title>
-          <v-data-table
-            :headers="headers"
-            :items="elements"
-            :search="search"
-          ></v-data-table>
         </v-card>
 
         <v-list>
@@ -126,7 +122,7 @@
               class="ml-5"
               v-text="item.quantity"
             ></v-list-item-title>
-            <v-chip label color="warning" class="ms-auto">
+            <v-chip label :color="getColor(item.scadenzaTemporale)" class="ms-auto">
               <span class="mdi mdi-shield-alert me-1"></span>
               {{ item.scadenzaGiorno }}
               {{ item.scadenzaTemporale }}
@@ -146,6 +142,11 @@
             </v-btn>
           </v-list-item>
         </v-list>
+        <v-data-table
+            :headers="addDialog.item.scadenzaTemporale"
+            :items="elements"
+            :search="searchSome"
+          ></v-data-table>
       </div>
     </v-main>
   </v-app>
@@ -289,6 +290,12 @@ export default {
       this.addDialog.item = this.elements[index];
       this.addDialog.item.edit = true;
       this.save();
+    },
+
+    getColor(scad) {
+      if (scad === "set") return'red';
+      else if(scad === "mes") return 'orange';
+      else return 'green';
     },
 
     save() {
