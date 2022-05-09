@@ -140,13 +140,15 @@
             <v-btn fab dark large color="cyan" icon @click="editElement(i)">
               <span class="mdi mdi-pencil-outline"></span>
             </v-btn>
-          </v-list-item>
-        </v-list>
-        <v-data-table
-            :headers="addDialog.item.scadenzaTemporale"
+
+            <v-data-table
+            :headers="addDialog.item.name"
             :items="elements"
             :search="searchSome"
           ></v-data-table>
+
+          </v-list-item>
+        </v-list>
       </div>
     </v-main>
   </v-app>
@@ -285,7 +287,6 @@ export default {
     },
 
     editElement(index) {
-      // this.addDialog.item.scadenzaCalcolata = this.addDialog.item.scadenzaCalcolata.format("DD/MM/YYYY");
       this.showAddDialog();
       this.addDialog.item = this.elements[index];
       this.addDialog.item.edit = true;
