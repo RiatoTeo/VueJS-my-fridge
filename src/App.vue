@@ -6,7 +6,7 @@
 
         <v-spacer></v-spacer>
 
-        <v-btn icon>
+        <v-btn icon @click="this.searchButton = !this.searchButton">
           <v-icon>mdi-magnify</v-icon>
         </v-btn>
 
@@ -91,6 +91,25 @@
       </v-dialog>
 
       <div id="container">
+        <v-card>
+          <v-card-title>
+            <v-text-field
+              v-model="search"
+              class="my-3"
+              append-icon="mdi-magnify"
+              label="Search"
+              single-line
+              hide-details
+              v-if="this.searchButton"
+            ></v-text-field>
+          </v-card-title>
+          <v-data-table
+            :headers="headers"
+            :items="elements"
+            :search="search"
+          ></v-data-table>
+        </v-card>
+
         <v-list>
           <v-list-subheader>FRIGO</v-list-subheader>
           <v-list-item
@@ -107,7 +126,8 @@
               class="ml-5"
               v-text="item.quantity"
             ></v-list-item-title>
-            <v-chip label class="ms-auto" color="orange">
+            <v-chip label color="warning" class="ms-auto">
+              <span class="mdi mdi-shield-alert me-1"></span>
               {{ item.scadenzaGiorno }}
               {{ item.scadenzaTemporale }}
             </v-chip>
@@ -145,6 +165,22 @@ export default {
 
   data: () => ({
     html5QrcodeScanner: null,
+    searchButton: false,
+
+    // headers: [
+    //       {
+    //         text: 'Dessert (100g serving)',
+    //         align: 'start',
+    //         sortable: false,
+    //         value: 'name',
+    //       },
+    //       { text: 'Calories', value: 'calories' },
+    //       { text: 'Fat (g)', value: 'fat' },
+    //       { text: 'Carbs (g)', value: 'carbs' },
+    //       { text: 'Protein (g)', value: 'protein' },
+    //       { text: 'Iron (%)', value: 'iron' },
+    // ],
+
     QRDialog: {
       show: false,
     },
@@ -195,7 +231,7 @@ export default {
         quantity: "",
         scadenzaGiorno: "",
         scadenzaTemporale: "",
-        scadenzaCalcolata: moment() .format("DD/MM/YYYY"),
+        scadenzaCalcolata: moment().format("DD/MM/YYYY"),
         edit: false,
       };
     },
