@@ -160,8 +160,8 @@ export default {
 
   data: () => ({
     html5QrcodeScanner: null,
-    searchButton: false, //per barra ricerca
-    searchString: "", //string ctrl f
+    searchButton: false, 
+    searchString: "", 
     QRDialog: {
       show: false,
     },
