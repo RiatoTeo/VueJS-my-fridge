@@ -2,7 +2,7 @@
   <v-app>
     <v-main>
       <v-app-bar>
-        <v-app-bar-title>My fridge</v-app-bar-title>
+        <v-app-bar-title>My Fridge</v-app-bar-title>
 
         <v-spacer></v-spacer>
 
