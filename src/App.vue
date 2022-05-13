@@ -46,19 +46,18 @@
                 label="giorni per scadenza"
                 type="number"
                 :rules="addDialog.scadenzaRules"
-                v-model="addDialog.item.scadenzaGiorno"
+                v-model="addDialog.item.scadenzaQnt"
               />
 
               <v-select
-                @change="updateScadenza"
-                :items="addDialog.scadenze"
-                v-model="addDialog.item.scadenzaTemporale"
+                :items="addDialog.scadenzaUnits"
+                v-model="addDialog.item.scadenzaUnit"
                 label="tempo per scadenza"
               ></v-select>
             </v-form>
 
-            today is:
-            {{ addDialog.item.scadenzaCalcolata }}
+            Scade il:
+            {{ scadenza.format("DD/MM/YYYY") }}
           </v-card-text>
 
           <v-divider></v-divider>
@@ -94,7 +93,7 @@
         <v-card>
           <v-card-title>
             <v-text-field
-              v-model="searchSome"
+              v-model="searchString"
               class="my-3"
               append-icon="mdi-magnify"
               label="Search"
@@ -109,7 +108,7 @@
         <v-list>
           <v-list-subheader>FRIGO</v-list-subheader>
           <v-list-item
-            v-for="(item, i) in elements"
+            v-for="(item, i) in filteredElements"
             :key="i"
             :value="item"
             active-color="primary"
@@ -122,10 +121,10 @@
               class="ml-5"
               v-text="item.quantity"
             ></v-list-item-title>
-            <v-chip label :color="getColor(item.scadenzaTemporale)" class="ms-auto">
+            <v-chip label :color="getColor(item)" class="ms-auto">
               <span class="mdi mdi-shield-alert me-1"></span>
-              {{ item.scadenzaGiorno }}
-              {{ item.scadenzaTemporale }}
+
+              {{ remaningDays(item) }}
             </v-chip>
 
             <v-btn
@@ -140,13 +139,6 @@
             <v-btn fab dark large color="cyan" icon @click="editElement(i)">
               <span class="mdi mdi-pencil-outline"></span>
             </v-btn>
-
-            <v-data-table
-            :headers="addDialog.item.name"
-            :items="elements"
-            :search="searchSome"
-          ></v-data-table>
-
           </v-list-item>
         </v-list>
       </div>
@@ -168,23 +160,8 @@ export default {
 
   data: () => ({
     html5QrcodeScanner: null,
-    searchButton: false,  //per barra ricerca
-    searchSome: "", //string ctrl f
-
-    // headers: [
-    //       {
-    //         text: 'Dessert (100g serving)',
-    //         align: 'start',
-    //         sortable: false,
-    //         value: 'name',
-    //       },
-    //       { text: 'Calories', value: 'calories' },
-    //       { text: 'Fat (g)', value: 'fat' },
-    //       { text: 'Carbs (g)', value: 'carbs' },
-    //       { text: 'Protein (g)', value: 'protein' },
-    //       { text: 'Iron (%)', value: 'iron' },
-    // ],
-
+    searchButton: false, 
+    searchString: "", 
     QRDialog: {
       show: false,
     },
@@ -207,24 +184,62 @@ export default {
       item: {
         name: "",
         quantity: 0,
-        scadenzaGiorno: "",
-        scadenzaTemporale: "",
-        //barcode: "",
+        scadenzaQnt: "",
+        scadenzaUnit: "",
         edit: false,
-        scadenzaCalcolata: moment(),
+        scadenzaTimestamp: null,
       },
-      scadenze: ["set", "mes", "ann"],
+      scadenzaUnits: ["Giorno", "Settimana", "Mese", "Anno"],
     },
     elements: [],
   }),
 
   mounted() {
-    console.log(moment().format());
     let elements = JSON.parse(localStorage.getItem("elements"));
     if (elements !== null) this.elements = elements;
   },
+  computed: {
+    scadenza() {
+      let today = moment();
 
+      let unit = this.addDialog.item.scadenzaUnit;
+      switch (unit) {
+        case "Anno":
+          unit = "year";
+          break;
+        case "Mese":
+          unit = "month";
+          break;
+        case "Settimana":
+          unit = "week";
+          break;
+        case "Giorno":
+          unit = "day";
+          break;
+
+        default:
+          break;
+      }
+      return today.add(this.addDialog.item.scadenzaQnt, unit);
+    },
+    filteredElements() {
+      let result = this.elements.filter((element) => {
+        return element.name.includes(this.searchString);
+      });
+
+      return result.sort((a, b) => {
+        return a.scadenzaTimestamp - b.scadenzaTimestamp;
+      });
+    },
+  },
   methods: {
+    moment,
+    remaningDays(item) {
+      let timestamp = item.scadenzaTimestamp;
+      console.log({ timestamp });
+      let scadenza = moment.unix(timestamp);
+      return scadenza.fromNow();
+    },
     closeAddDialog() {
       this.addDialog.show = false;
     },
@@ -235,7 +250,6 @@ export default {
         quantity: "",
         scadenzaGiorno: "",
         scadenzaTemporale: "",
-        scadenzaCalcolata: moment().format("DD/MM/YYYY"),
         edit: false,
       };
     },
@@ -258,21 +272,18 @@ export default {
       this.html5QrcodeScanner.stop();
     },
 
-    updateScadenza(e) {
-      console.log(e);
-
-      this.addDialog.item.scadenzaCalcolata.add("1", "day");
-    },
-
     saveElement() {
       if (
         this.addDialog.item.name === "" ||
-        this.addDialog.item.quantity === "" ||
-        this.addDialog.item.scadenzaGiorno === "" ||
-        this.addDialog.item.scadenzaTemporale === ""
+        this.addDialog.item.quantity < 1 ||
+        this.addDialog.item.scadenzaQnt < 1 ||
+        this.addDialog.item.scadenzaUnit === ""
       ) {
         return;
       }
+
+      this.addDialog.item.scadenzaTimestamp = this.scadenza.unix();
+      console.log(this.scadenza.format());
 
       if (this.addDialog.item.edit !== true) {
         this.elements.push(this.addDialog.item);
@@ -293,10 +304,14 @@ export default {
       this.save();
     },
 
-    getColor(scad) {
-      if (scad === "set") return'red';
-      else if(scad === "mes") return 'orange';
-      else return 'green';
+    getColor(item) {
+      let timestamp = item.scadenzaTimestamp;
+      let scadenza = moment.unix(timestamp);
+      let durata = scadenza.diff(moment(), "days");
+
+      if (durata < 5) return "red";
+      else if (durata < 10) return "orange";
+      else return "green";
     },
 
     save() {
