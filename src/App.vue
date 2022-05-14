@@ -32,6 +32,12 @@
                 :rules="addDialog.nameRules"
                 v-model="addDialog.item.name"
               />
+              <v-text-field
+                class="text-h5 grey lighten-2"
+                label="Barcode (optional)"
+                type="text"
+                v-model="addDialog.item.barcode"
+              />
 
               <v-text-field
                 class="text-h5 grey lighten-1"
@@ -148,7 +154,7 @@
 
 <script>
 // import HelloWorld from "./components/HelloWorld.vue";
-import { Html5QrcodeScanner } from "html5-qrcode";
+import { Html5Qrcode } from "html5-qrcode";
 import moment from "moment";
 
 export default {
@@ -159,7 +165,7 @@ export default {
   },
 
   data: () => ({
-    html5QrcodeScanner: null,
+    html5QrCode: null,
     searchButton: false,
     searchString: "",
     QRDialog: {
@@ -183,6 +189,7 @@ export default {
       ],
       item: {
         name: "",
+        barcode: "",
         quantity: 0,
         scadenzaQnt: "",
         scadenzaUnit: "",
@@ -193,16 +200,19 @@ export default {
       scadenzaUnits: ["Giorno", "Settimana", "Mese", "Anno"],
     },
     elements: [],
+    db_prodotti: [],
   }),
 
   mounted() {
     let elements = JSON.parse(localStorage.getItem("elements"));
+    let db_prodotti = JSON.parse(localStorage.getItem("db_prodotti"));
     if (elements !== null) this.elements = elements;
+    if (db_prodotti !== null) this.db_prodotti = db_prodotti;
   },
   computed: {
     scadenza() {
       let startDate = moment();
-      if(this.addDialog.item.insermentoTimestamp){
+      if (this.addDialog.item.insermentoTimestamp) {
         startDate = moment.unix(this.addDialog.item.insermentoTimestamp);
       }
 
@@ -252,6 +262,7 @@ export default {
       this.addDialog.show = true;
       this.addDialog.item = {
         name: "",
+        barcode: "",
         quantity: "",
         scadenzaGiorno: "",
         scadenzaTemporale: "",
@@ -262,19 +273,46 @@ export default {
       this.QRDialog.show = true;
 
       setTimeout(() => {
-        this.html5QrcodeScanner = new Html5QrcodeScanner(
-          "qr",
-          { fps: 1, qrbox: { width: 250, height: 250 } },
-          /* verbose= */ true
+        this.html5QrCode = new Html5Qrcode("qr");
+
+        const config = { fps: 5, qrbox: { width: 250, height: 250 } };
+
+        // If you want to prefer back camera
+        this.html5QrCode.start(
+          { facingMode: "environment" },
+          config,
+          this.onScanSuccess
         );
-        this.html5QrcodeScanner.render(this.onScanSuccess);
       }, 1000);
     },
 
-    onScanSuccess(decodedText, decodedResult) {
+    onScanSuccess(decodedText) {
       // handle the scanned code as you like, for example:
-      console.log(`Code matched = ${decodedText}`, decodedResult);
-      this.html5QrcodeScanner.stop();
+      this.html5QrCode.stop();
+      console.log(decodedText);
+      let index = this.elements.findIndex((element) => {
+        return element.barcode === decodedText;
+      });
+      console.log({ index });
+      if (index >= 0) {
+        //prodotto esiste
+        this.editElement(this.elements[index]);
+        this.QRDialog.show = false;
+      } else {
+        //prodotto da aggiungere
+        this.showAddDialog();
+        this.QRDialog.show = false;
+        this.addDialog.item.barcode = decodedText;
+        let prodotto = this.db_prodotti.find((e) => {
+          return e.barcode === decodedText;
+        });
+        console.log("hey");
+        console.log("prodotto:", prodotto);
+        if (prodotto) {
+          this.addDialog.item.name = prodotto.name;
+        }
+        // check database locale
+      }
     },
 
     saveElement() {
@@ -291,6 +329,13 @@ export default {
 
       if (this.addDialog.item.edit !== true) {
         this.addDialog.item.insermentoTimestamp = moment().unix();
+        if (this.addDialog.item.barcode > 0) {
+          //check se esiste già
+          this.db_prodotti.push({
+            barcode: this.addDialog.item.barcode,
+            name: this.addDialog.item.name,
+          });
+        }
         this.elements.push(this.addDialog.item);
       }
       this.closeAddDialog();
@@ -324,6 +369,7 @@ export default {
 
     save() {
       localStorage.setItem("elements", JSON.stringify(this.elements));
+      localStorage.setItem("db_prodotti", JSON.stringify(this.db_prodotti));
     },
   },
 };
