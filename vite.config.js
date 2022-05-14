@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import vuetify from '@vuetify/vite-plugin'
+import { VitePWA } from 'vite-plugin-pwa'
 
 const path = require('path')
 
@@ -12,6 +13,34 @@ export default defineConfig({
     vuetify({
       autoImport: true,
     }),
+    VitePWA(
+      {
+        includeAssets: ['favicon.ico', 'robots.txt', 'apple-touch-icon.png'],
+        manifest: {
+          "theme_color": "#f69435",
+          "background_color": "#f69435",
+          "display": "standalone",
+          "scope": "/",
+          "start_url": "/",
+          "name": "MyFridge",
+          "short_name": "MyFridge",
+          "description": "Il tuo frigo in un app",
+          "icons": [
+            {
+              "src": "img/icons/android-chrome-192x192.png",
+              "sizes": "192x192",
+              "type": "image/png"
+            },
+            {
+              "src": "img/icons/android-chrome-512x512.png",
+              "sizes": "512x512",
+              "type": "image/png"
+            }
+          ]
+        }
+      }
+    )
+
   ],
   define: { 'process.env': {} },
   resolve: {
