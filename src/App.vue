@@ -131,12 +131,12 @@
               color="error"
               dark
               icon
-              @click="deleteElement(i)"
+              @click="deleteElement(item)"
               class="mx-3"
             >
               <span class="mdi mdi-delete"></span>
             </v-btn>
-            <v-btn fab dark large color="cyan" icon @click="editElement(i)">
+            <v-btn fab dark large color="cyan" icon @click="editElement(item)">
               <span class="mdi mdi-pencil-outline"></span>
             </v-btn>
           </v-list-item>
@@ -160,8 +160,8 @@ export default {
 
   data: () => ({
     html5QrcodeScanner: null,
-    searchButton: false, 
-    searchString: "", 
+    searchButton: false,
+    searchString: "",
     QRDialog: {
       show: false,
     },
@@ -188,6 +188,7 @@ export default {
         scadenzaUnit: "",
         edit: false,
         scadenzaTimestamp: null,
+        insermentoTimestamp: null,
       },
       scadenzaUnits: ["Giorno", "Settimana", "Mese", "Anno"],
     },
@@ -200,7 +201,11 @@ export default {
   },
   computed: {
     scadenza() {
-      let today = moment();
+      let startDate = moment();
+      if(this.addDialog.item.insermentoTimestamp){
+        startDate = moment.unix(this.addDialog.item.insermentoTimestamp);
+      }
+
       let unit = this.addDialog.item.scadenzaUnit;
       switch (unit) {
         case "Anno":
@@ -219,7 +224,7 @@ export default {
         default:
           break;
       }
-      return today.add(this.addDialog.item.scadenzaQnt, unit);
+      return startDate.add(this.addDialog.item.scadenzaQnt, unit);
     },
     filteredElements() {
       let result = this.elements.filter((element) => {
@@ -237,7 +242,8 @@ export default {
       let timestamp = item.scadenzaTimestamp;
       console.log({ timestamp });
       let scadenza = moment.unix(timestamp);
-      return scadenza.fromNow();
+      let out = scadenza.fromNow();
+      return out;
     },
     closeAddDialog() {
       this.addDialog.show = false;
@@ -282,23 +288,26 @@ export default {
       }
 
       this.addDialog.item.scadenzaTimestamp = this.scadenza.unix();
-      console.log(this.scadenza.format());
 
       if (this.addDialog.item.edit !== true) {
+        this.addDialog.item.insermentoTimestamp = moment().unix();
         this.elements.push(this.addDialog.item);
       }
       this.closeAddDialog();
       this.save();
     },
 
-    deleteElement(index) {
-      this.elements.splice(index, 1);
+    deleteElement(item) {
+      //index of item in elements
+      this.elements = this.elements.filter((element) => {
+        return item.name !== element.name;
+      });
       this.save();
     },
 
-    editElement(index) {
+    editElement(item) {
       this.showAddDialog();
-      this.addDialog.item = this.elements[index];
+      this.addDialog.item = item;
       this.addDialog.item.edit = true;
       this.save();
     },
