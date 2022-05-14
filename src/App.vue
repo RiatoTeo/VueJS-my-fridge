@@ -201,7 +201,6 @@ export default {
   computed: {
     scadenza() {
       let today = moment();
-
       let unit = this.addDialog.item.scadenzaUnit;
       switch (unit) {
         case "Anno":
