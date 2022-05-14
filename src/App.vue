@@ -2,7 +2,7 @@
   <v-app>
     <v-main>
       <v-app-bar>
-        <v-app-bar-title>My Fridge</v-app-bar-title>
+        <img src="img/icons/favicon-32x32.png" />
 
         <v-spacer></v-spacer>
 
@@ -49,7 +49,7 @@
 
               <v-text-field
                 class="text-h5 grey lighten-1"
-                label="giorni per scadenza"
+                label="Unità"
                 type="number"
                 :rules="addDialog.scadenzaRules"
                 v-model="addDialog.item.scadenzaQnt"
@@ -58,12 +58,14 @@
               <v-select
                 :items="addDialog.scadenzaUnits"
                 v-model="addDialog.item.scadenzaUnit"
-                label="tempo per scadenza"
+                label="Periodo"
               ></v-select>
             </v-form>
 
-            Scade il:
-            {{ scadenza.format("DD/MM/YYYY") }}
+            <v-alert type="info" icon="mdi-clock-alert">
+              Scade il:
+              {{ scadenza.format("DD/MM/YYYY") }}</v-alert
+            >
           </v-card-text>
 
           <v-divider></v-divider>
@@ -71,26 +73,24 @@
           <v-card-actions>
             <v-spacer></v-spacer>
 
-            <v-row align="center" justify="space-around">
-              <v-btn
-                color="success"
-                @click="saveElement"
-                v-if="addDialog.item.edit"
-              >
-                <v-icon left> mdi-content-save-edit </v-icon>
-                Save
-              </v-btn>
+            <v-btn
+              color="success"
+              @click="saveElement"
+              v-if="addDialog.item.edit"
+            >
+              <v-icon left> mdi-content-save-edit </v-icon>
+              Save
+            </v-btn>
 
-              <v-btn color="success" @click="saveElement" v-else>
-                <v-icon left> mdi-plus-circle </v-icon>
-                Add
-              </v-btn>
+            <v-btn color="success" @click="saveElement" v-else>
+              <v-icon left> mdi-plus-circle </v-icon>
+              Add
+            </v-btn>
 
-              <v-btn color="error" @click="closeAddDialog">
-                <v-icon left> mdi-close-circle </v-icon>
-                Close
-              </v-btn>
-            </v-row>
+            <v-btn color="error" @click="closeAddDialog">
+              <v-icon left> mdi-close-circle </v-icon>
+              Close
+            </v-btn>
           </v-card-actions>
         </v-card>
       </v-dialog>
@@ -122,29 +122,38 @@
             <v-list-item-avatar start>
               <v-icon> mdi-food </v-icon>
             </v-list-item-avatar>
-            <v-list-item-title v-text="item.name"></v-list-item-title>
-            <v-list-item-title
-              class="ml-5"
-              v-text="item.quantity"
-            ></v-list-item-title>
-            <v-chip label :color="getColor(item)" class="ms-auto">
-              <span class="mdi mdi-shield-alert me-1"></span>
+            <v-list-item-content>
+              <v-list-item-title v-text="item.name"></v-list-item-title>
+              <v-list-item-subtitle>
+                Rimanenti: {{ item.quantity }} unità
+              </v-list-item-subtitle>
+              <v-chip label :color="getColor(item)" class="ms-auto mt-1">
+                <span class="mdi mdi-shield-alert me-1"></span>
 
-              {{ remaningDays(item) }}
-            </v-chip>
-
-            <v-btn
-              color="error"
-              dark
-              icon
-              @click="deleteElement(item)"
-              class="mx-3"
-            >
-              <span class="mdi mdi-delete"></span>
-            </v-btn>
-            <v-btn fab dark large color="cyan" icon @click="editElement(item)">
-              <span class="mdi mdi-pencil-outline"></span>
-            </v-btn>
+                {{ remaningDays(item) }}
+              </v-chip>
+            </v-list-item-content>
+            <div class="ms-auto">
+              <v-btn
+                color="error"
+                dark
+                icon
+                @click="deleteElement(item)"
+                class="mx-3"
+              >
+                <span class="mdi mdi-delete"></span>
+              </v-btn>
+              <v-btn
+                fab
+                dark
+                large
+                color="cyan"
+                icon
+                @click="editElement(item)"
+              >
+                <span class="mdi mdi-pencil-outline"></span>
+              </v-btn>
+            </div>
           </v-list-item>
         </v-list>
       </div>
@@ -206,6 +215,7 @@ export default {
   mounted() {
     let elements = JSON.parse(localStorage.getItem("elements"));
     let db_prodotti = JSON.parse(localStorage.getItem("db_prodotti"));
+
     if (elements !== null) this.elements = elements;
     if (db_prodotti !== null) this.db_prodotti = db_prodotti;
   },
